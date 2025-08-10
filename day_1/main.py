@@ -22,17 +22,18 @@ def solution_1(left: list[int], right: list[int]) -> int:
     left.sort()
     right.sort()
 
-    distances = []
+    total = 0
 
     for i in range(len(left)):
-        distances.append(abs(left[i] - right[i]))
+        total += abs(left[i] - right[i])
 
-    return sum(distances)
 
+    return total
 
 def solution_2(left: list[int], right: list[int]) -> int:
     right_occurances = {}
 
+    # Create map of occurances - O(n)
     for r in right:
         if r in right_occurances:
             right_occurances[r] += 1
@@ -41,6 +42,7 @@ def solution_2(left: list[int], right: list[int]) -> int:
 
     total = 0
 
+    # calculate total score - O(n)
     for l in left:
         if l not in right_occurances:
             continue
