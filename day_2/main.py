@@ -10,7 +10,7 @@ def parse_input():
         return levels
 
 
-def validate_level(level: list[int]):
+def validate_level(level: list[int]) -> bool:
     first = level[0]
     second = level[1]
 
@@ -37,66 +37,66 @@ def validate_level(level: list[int]):
 
 
 def solution_1(levels: list[list[int]]) -> tuple[list[bool], bool]:
-    valid_num = len(levels)
+    safe_count = len(levels)
     report_result = [True for _ in levels]
 
     for i, level in enumerate(levels):
-        result, idx = validate_level(level)
+        is_safe, idx = validate_level(level)
 
-        report_result[i] = result
+        report_result[i] = is_safe
 
-        if result is False:
-            valid_num -= 1
+        if is_safe is False:
+            safe_count -= 1
 
-    return report_result, valid_num
+    return report_result, safe_count
 
 
 def solution_2(levels: list[list[int]]) -> tuple[list[bool], bool]:
-    valid_num = len(levels)
+    safe_count = len(levels)
     report_result = [True for _ in levels]
 
     for i, level in enumerate(levels):
-        result, idx = validate_level(level)
+        is_safe, idx = validate_level(level)
 
-        if result is True:
-            report_result[i] = result
+        if is_safe is True:
+            report_result[i] = is_safe
 
             continue
 
         left = level.copy()
         left.pop(idx - 1)
 
-        left_result, _idx = validate_level(left)
+        left_is_safe, _idx = validate_level(left)
 
-        if left_result is True:
-            report_result[i] = left_result
+        if left_is_safe is True:
+            report_result[i] = left_is_safe
 
             continue
 
         center = level.copy()
         center.pop(idx)
 
-        center_result, _idx = validate_level(center)
+        center_is_safe, _idx = validate_level(center)
 
-        if center_result is True:
-            report_result[i] = center_result
+        if center_is_safe is True:
+            report_result[i] = center_is_safe
 
             continue
 
         right = level.copy()
         right.pop(idx + 1)
 
-        right_result, _idx = validate_level(right)
+        right_is_safe, _idx = validate_level(right)
 
-        if right_result is True:
-            report_result[i] = right_result
+        if right_is_safe is True:
+            report_result[i] = right_is_safe
 
             continue
 
         report_result[i] = False
-        valid_num -= 1
+        safe_count -= 1
 
-    return report_result, valid_num
+    return report_result, safe_count
 
 
 if __name__ == "__main__":
