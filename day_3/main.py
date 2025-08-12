@@ -32,8 +32,6 @@ class Operation(ABC):
         if self.state == ParserState.PARAMETERS and char == ")":
             self.state = ParserState.READY
             return self
-        else:
-            pass
 
 
 class MultOperation(Operation):
@@ -148,7 +146,7 @@ class Parser:
 
 
 def solution_1(stream: str):
-    operations: list[MultOperation] = []
+    total = 0
     parser = Parser(operations=[MultOperation], debug=False)
 
     for char in stream:
@@ -157,15 +155,12 @@ def solution_1(stream: str):
         if res is None:
             continue
 
-        operations.append(res)
+        if res.state != ParserState.READY or len(res.args) != 2:
+            continue
 
-    total = 0
+        total += res.args[0] * res.args[1]
 
-    for op in operations:
-        if op.type == MultOperation.type and op.state == ParserState.READY:
-            total += op.args[0] * op.args[1]
-
-    return total, operations
+    return total
 
 
 def solution_2(stream: str):
@@ -199,7 +194,7 @@ def solution_2(stream: str):
 if __name__ == "__main__":
     inp = parse_input()
 
-    total_1, operations_1 = solution_1(inp)
+    total_1 = solution_1(inp)
 
     print(f"Part one: {total_1}")
 

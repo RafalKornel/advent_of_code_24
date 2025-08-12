@@ -8,13 +8,13 @@ test_input_2 = "xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?
 
 
 def test_1():
-    total, operations = solution_1(test_input_1)
+    total= solution_1(test_input_1)
 
     expected = 163 + 56
 
-    assert total == expected, f"Failed! Total: {total}, Operations: {operations}"
+    assert total == expected, f"Failed! Total: {total}"
 
-    print(total, operations)
+    print(total)
 
 def test_2():
     total, operations = solution_2(test_input_2)
