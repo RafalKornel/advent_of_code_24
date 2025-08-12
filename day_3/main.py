@@ -1,6 +1,5 @@
 from __future__ import annotations
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from abc import ABC
 from enum import Enum
 from pathlib import Path
 
@@ -13,21 +12,24 @@ def parse_input() -> str:
 class ParserState(Enum):
     IDLE = "idle"
     OPERATION = "operation"
-    LEFT = "left"
-    RIGHT = "right"
+    PARAMETERS = "parameters"
     READY = "ready"
     FAILED = "failed"
 
 
 class Operation(ABC):
     type: str = NotImplemented
-    state: ParserState = ParserState.LEFT
+    state: ParserState = ParserState.PARAMETERS
+    args: list[int] = []
+
+    def __init__(self):
+        self.args = []
 
     def __repr__(self):
         return f"[{self.type}] {self.state}"
 
     def consume(self, char: str) -> Operation | None:
-        if self.state == ParserState.LEFT and char == ")":
+        if self.state == ParserState.PARAMETERS and char == ")":
             self.state = ParserState.READY
             return self
         else:
@@ -37,48 +39,40 @@ class Operation(ABC):
 class MultOperation(Operation):
     type = "mul"
 
-    left: int | None = None
-    right: int | None = None
-    arg: list[str] = []
-
-    state: ParserState = ParserState.LEFT
+    stack: list[str] = []
+    state: ParserState = ParserState.PARAMETERS
 
     def __repr__(self):
-        return f"MULT - State {self.state} | Args: ({self.left}, {self.right})"
+        return f"MULT - State {self.state} | Args: {self.args}"
 
     def restart(self):
-        self.left = None
-        self.right = None
-        self.arg.clear()
+        self.stack.clear()
         self.state = ParserState.FAILED
 
+        return self
+
     def consume(self, char: str) -> Operation | None:
-        if self.state == ParserState.LEFT:
-            if char.isdigit():
-                self.arg.append(char)
-            elif char == "," and len(self.arg) > 0:
-                number_as_str = int("".join(self.arg))
-                self.left = number_as_str
-                self.state = ParserState.RIGHT
-                self.arg.clear()
-            else:
-                return self.restart()
+        if self.state != ParserState.PARAMETERS:
+            return
 
-        elif self.state == ParserState.RIGHT:
-            if char.isdigit():
-                self.arg.append(char)
-            elif char == ")" and len(self.arg) > 0:
-                number_as_str = int("".join(self.arg))
-                self.right = number_as_str
-                self.arg.clear()
+        if char.isdigit():
+            self.stack.append(char)
+        elif char == "," and len(self.stack) > 0:
+            number_as_str = int("".join(self.stack))
+            self.args.append(number_as_str)
+            self.stack.clear()
+        elif char == ")" and len(self.stack) > 0:
+            number_as_str = int("".join(self.stack))
+            self.args.append(number_as_str)
+            self.stack.clear()
+
+            if len(self.args) == 2:
                 self.state = ParserState.READY
-
                 return self
             else:
                 return self.restart()
         else:
-            self.state = ParserState.FAILED
-            return self
+            return self.restart()
 
 
 class DoOperation(Operation):
@@ -110,6 +104,8 @@ class Parser:
         self.state = ParserState.IDLE
         self.stack.clear()
         self.operation = None
+
+        return self
 
     def __repr__(self):
         return f"State {self.state} | Operation ({self.operation}) | Stack {self.stack}"
@@ -145,11 +141,10 @@ class Parser:
             if not res:
                 return
 
+            self.restart()
+
             if res.state == ParserState.READY:
-                self.restart()
                 return res
-            else:
-                self.restart()
 
 
 def solution_1(stream: str):
@@ -167,8 +162,8 @@ def solution_1(stream: str):
     total = 0
 
     for op in operations:
-        if op.type == MultOperation.type:
-            total += op.left * op.right
+        if op.type == MultOperation.type and op.state == ParserState.READY:
+            total += op.args[0] * op.args[1]
 
     return total, operations
 
@@ -191,8 +186,12 @@ def solution_2(stream: str):
             is_enabled = True
         elif op.type == DontOperation.type:
             is_enabled = False
-        elif op.type == MultOperation.type and is_enabled:
-            total += op.left * op.right
+        elif (
+            op.type == MultOperation.type
+            and op.state == ParserState.READY
+            and is_enabled
+        ):
+            total += op.args[0] * op.args[1]
 
     return total, operations
 
